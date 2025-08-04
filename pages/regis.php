@@ -60,7 +60,7 @@
       </div>
 
       <!-- Login Form -->
-      <form id="loginForm" class="space-y-6">
+      <form id="regisForm" method="post" action="../crud/crud-regis.php" class="space-y-6">
         
         <!-- Email Field -->
         <div>
@@ -89,7 +89,7 @@
               type="password" 
               id="password" 
               name="password"
-              required
+              required                              
               class="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
               placeholder="Masukkan password Anda"
             >
@@ -164,37 +164,14 @@
         eyeIcon.className = 'uil uil-eye';
       }
     });
-
     // Handle form submission
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      
-      // Simple validation
-      if (!email || !password) {
-        alert('Mohon isi semua field!');
-        return;
-      }
-      
-      // Simulate login process
-      const button = e.target.querySelector('button[type="submit"]');
-      const originalText = button.innerHTML;
-      
-      button.innerHTML = '<i class="uil uil-spinner-alt animate-spin mr-2"></i>Memproses...';
-      button.disabled = true;
-      
-      setTimeout(() => {
-        alert('Login berhasil! Selamat datang di POS Warung UMKM.');
-        // Redirect to dashboard or main app
-        // window.location.href = 'dashboard.html';
-        
-        // Reset button for demo
-        button.innerHTML = originalText;
-        button.disabled = false;
-      }, 2000);
-    });
+     document.getElementById('regisForm').addEventListener('submit', function(e) {
+    const button = this.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+
+    button.innerHTML = '<i class="uil uil-spinner-alt animate-spin mr-2"></i>Memproses...';
+    button.disabled = true;
+  });            
 
     // Demo login
     document.getElementById('demoLogin').addEventListener('click', function() {

@@ -60,7 +60,7 @@
       </div>
 
       <!-- Login Form -->
-      <form id="loginForm" class="space-y-6">
+      <form id="loginForm" method="POST" action="../crud/crud-login.php" class="space-y-6">
         
         <!-- Email Field -->
         <div>
@@ -167,35 +167,13 @@
     });
 
     // Handle form submission
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-      
-      // Simple validation
-      if (!email || !password) {
-        alert('Mohon isi semua field!');
-        return;
-      }
-      
-      // Simulate login process
-      const button = e.target.querySelector('button[type="submit"]');
-      const originalText = button.innerHTML;
-      
-      button.innerHTML = '<i class="uil uil-spinner-alt animate-spin mr-2"></i>Memproses...';
-      button.disabled = true;
-      
-      setTimeout(() => {
-        alert('Login berhasil! Selamat datang di POS Warung UMKM.');
-        // Redirect to dashboard or main app
-        // window.location.href = 'dashboard.html';
-        
-        // Reset button for demo
-        button.innerHTML = originalText;
-        button.disabled = false;
-      }, 2000);
-    });
+   document.getElementById('regisForm').addEventListener('submit', function(e) {
+    const button = this.querySelector('button[type="submit"]');
+    const originalText = button.innerHTML;
+     button.innerHTML = '<i class="uil uil-spinner-alt animate-spin mr-2"></i>Memproses...';
+    button.disabled = true;
+  });  
+
 
     // Demo login
     document.getElementById('demoLogin').addEventListener('click', function() {
