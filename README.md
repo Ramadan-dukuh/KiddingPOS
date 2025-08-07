@@ -1,4 +1,4 @@
-# KiddingPOS - Smart E-Commerce & POS Website with AI Chatbot
+# KiddingPOS 
 
 **KiddingPOS** is a smart, web-based **E-Commerce and Point of Sale (POS)** system designed for small businesses and SMEs (UMKM). This project combines a **PHP-based frontend** with a **Django-powered AI chatbot**, creating a seamless experience for both customers and admins. Our platform provides local businesses with the digital tools they need to establish their online presence, manage their products, and reach customers effectively in the digital marketplace.
 
