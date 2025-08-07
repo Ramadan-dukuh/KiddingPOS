@@ -145,11 +145,30 @@
   </main>
 
   <script>
-    // Simple toggle mobile menu
-    document.getElementById("mobile-menu-button").addEventListener("click", function () {
-      document.getElementById("mobile-menu").classList.toggle("hidden");
-      document.getElementById("hamburger").classList.toggle("hidden");
-      document.getElementById("close").classList.toggle("hidden");
+ // Toggle profile dropdown
+    const profileBtn = document.getElementById('profile-button');
+    const profileMenu = document.getElementById('profile-menu');
+    profileBtn.addEventListener('click', () => {
+      profileMenu.classList.toggle('hidden');
+    });
+
+    // Toggle mobile menu
+    const mobileMenuBtn = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerIcon = document.getElementById('hamburger');
+    const closeIcon = document.getElementById('close');
+
+    mobileMenuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+      hamburgerIcon.classList.toggle('hidden');
+      closeIcon.classList.toggle('hidden');
+    });
+
+    // Optional: close profile dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
+        profileMenu.classList.add('hidden');
+      }
     });
   </script>
 </body>
