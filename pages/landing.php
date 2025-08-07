@@ -80,26 +80,19 @@
 
   <!-- Chat AI Section -->
   <section id="chat-ai" class="py-16 bg-gray-100">
-    <div class="max-w-4xl mx-auto px-6">
-      <h2 class="text-3xl font-bold text-center mb-8">Bicara dengan Asisten AI</h2>
-      <div class="bg-white p-6 rounded-xl shadow-md">
-        <div class="h-64 overflow-y-auto border border-gray-200 p-4 mb-4 rounded-lg">
-          <div class="mb-3">
-            <p class="text-sm text-primary-500 ">Anda:</p>
-            <div class="bg-gray-200 p-2 rounded-md inline-block">Bagaimana cara menambahkan produk baru?</div>
-          </div>
-          <div class="mb-3">
-            <p class="text-sm text-gray-500">AI:</p>
-            <div class="p-2 rounded-md inline-block" style="background-color: #e8ecf2; color: #212A3D;">Klik menu "Produk" > "Tambah", isi data, lalu klik "Simpan".</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-4">
-          <input type="text" class="flex-1 border border-gray-300 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Tulis pertanyaan Anda...">
-          <button class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary transition">Kirim</button>
-        </div>
+  <div class="max-w-4xl mx-auto px-6">
+    <h2 class="text-3xl font-bold text-center mb-8">Bicara dengan Asisten AI</h2>
+    <div class="bg-white p-6 rounded-xl shadow-md">
+      <div id="chatbox" class="h-64 overflow-y-auto border border-gray-200 p-4 mb-4 rounded-lg"></div>
+      <div class="flex items-center gap-4">
+        <input id="user-input" type="text" class="flex-1 border border-gray-300 px-4 py-2 rounded-lg" placeholder="Tulis pertanyaan Anda...">
+        <button id="send-btn" class="bg-primary text-white px-4 py-2 rounded-lg">Kirim</button>
       </div>
     </div>
-  </section>
+  </div>
+</section>
+<script src="js/chat.js"></script>
+
 
   <!-- Testimoni -->
   <section id="testimoni" class="py-16 bg-white">
