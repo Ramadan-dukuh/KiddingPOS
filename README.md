@@ -50,3 +50,6 @@ Django will run at http://127.0.0.1:8000/
 
 ## 🤝 Contributing
 This project is still in active development. Feel free to fork the repo, open issues, or submit pull requests for improvements!
+
+Best,
+Kidding
