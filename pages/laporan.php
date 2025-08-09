@@ -1,3 +1,125 @@
+<?php
+require_once '../crud/koneksi.php';
+session_start();
+
+// Fungsi untuk mendapatkan data transaksi terakhir
+function getTransaksiTerakhir($limit = 5) {
+    global $conn;
+    $query = "SELECT t.idTransaksi, t.tanggal, t.total, 
+                     GROUP_CONCAT(b.namaBarang SEPARATOR ', ') AS produk,
+                     GROUP_CONCAT(dt.jumlah SEPARATOR ', ') AS jumlah
+              FROM transaksi t
+              JOIN detail_transaksi dt ON t.idTransaksi = dt.idTransaksi
+              JOIN barang b ON dt.kodeBarang = b.kodeBarang
+              GROUP BY t.idTransaksi
+              ORDER BY t.tanggal DESC
+              LIMIT $limit";
+    return mysqli_query($conn, $query);
+}
+
+// Fungsi untuk mendapatkan data penjualan harian
+function getPenjualanHarian() {
+    global $conn;
+    $query = "SELECT DAYNAME(tanggal) AS hari, 
+                     COUNT(*) AS jumlah_transaksi, 
+                     SUM(total) AS total_penjualan
+              FROM transaksi
+              WHERE tanggal >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+              GROUP BY DAYNAME(tanggal)
+              ORDER BY tanggal";
+    return mysqli_query($conn, $query);
+}
+
+// Fungsi untuk mendapatkan produk terlaris
+function getProdukTerlaris($limit = 5) {
+    global $conn;
+    $query = "SELECT b.namaBarang, SUM(dt.jumlah) AS total_terjual
+              FROM detail_transaksi dt
+              JOIN barang b ON dt.kodeBarang = b.kodeBarang
+              GROUP BY b.namaBarang
+              ORDER BY total_terjual DESC
+              LIMIT $limit";
+    return mysqli_query($conn, $query);
+}
+
+// Fungsi untuk export ke Excel
+function exportToExcel() {
+    global $conn;
+    
+    // Header untuk file Excel
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment; filename="laporan_penjualan_'.date('Ymd').'.xls"');
+    
+    // Query data untuk export
+    $query = "SELECT t.idTransaksi, t.tanggal, 
+                     b.namaBarang AS produk, 
+                     dt.jumlah, 
+                     dt.harga,
+                     (dt.jumlah * dt.harga) AS subtotal,
+                     t.total
+              FROM transaksi t
+              JOIN detail_transaksi dt ON t.idTransaksi = dt.idTransaksi
+              JOIN barang b ON dt.kodeBarang = b.kodeBarang
+              ORDER BY t.tanggal DESC";
+    $result = mysqli_query($conn, $query);
+    
+    echo '<table border="1">
+            <tr>
+                <th>ID Transaksi</th>
+                <th>Tanggal</th>
+                <th>Produk</th>
+                <th>Jumlah</th>
+                <th>Harga Satuan</th>
+                <th>Subtotal</th>
+                <th>Total Transaksi</th>
+            </tr>';
+    
+    while($row = mysqli_fetch_assoc($result)) {
+        echo '<tr>
+                <td>'.$row['idTransaksi'].'</td>
+                <td>'.$row['tanggal'].'</td>
+                <td>'.$row['produk'].'</td>
+                <td>'.$row['jumlah'].'</td>
+                <td>Rp '.number_format($row['harga'], 0, ',', '.').'</td>
+                <td>Rp '.number_format($row['subtotal'], 0, ',', '.').'</td>
+                <td>Rp '.number_format($row['total'], 0, ',', '.').'</td>
+              </tr>';
+    }
+    
+    echo '</table>';
+    exit();
+}
+
+// Handle export request
+if(isset($_GET['export'])) {
+    exportToExcel();
+}
+
+// Ambil data dari database
+$transaksiTerakhir = getTransaksiTerakhir();
+$penjualanHarian = getPenjualanHarian();
+$produkTerlaris = getProdukTerlaris();
+
+// Siapkan data untuk chart
+$labelsHarian = [];
+$dataHarian = [];
+
+$labelsProduk = [];
+$dataProduk = [];
+
+// Proses data penjualan harian
+while ($row = mysqli_fetch_assoc($penjualanHarian)) {
+    $labelsHarian[] = $row['hari'];
+    $dataHarian[] = $row['total_penjualan'];
+}
+
+// Proses data produk terlaris
+while ($row = mysqli_fetch_assoc($produkTerlaris)) {
+    $labelsProduk[] = $row['namaBarang'];
+    $dataProduk[] = $row['total_terjual'];
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -80,27 +202,40 @@
 
   <!-- Main Content -->
   <main class="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <!-- Header dan Tombol Export -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-primary">Laporan Penjualan</h1>
+      <a href="?export=1" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2">
+        <i class="fas fa-file-excel"></i> Export to Excel
+      </a>
+    </div>
+
     <!-- Transaksi Terakhir -->
     <section class="bg-white p-6 rounded-lg shadow">
-      <h2 class="text-xl font-semibold text-primary mb-4">Transaksi Terakhir</h2>
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-primary">Transaksi Terakhir</h2>
+      </div>
       <div class="overflow-x-auto">
         <table class="min-w-full table-auto text-sm text-left">
           <thead class="bg-gray-100">
             <tr>
               <th class="px-4 py-2">Tanggal</th>
+              <th class="px-4 py-2">ID Transaksi</th>
               <th class="px-4 py-2">Produk</th>
               <th class="px-4 py-2">Jumlah</th>
               <th class="px-4 py-2">Total</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-t">
-              <td class="px-4 py-2">2025-08-01</td>
-              <td class="px-4 py-2">Es Teh</td>
-              <td class="px-4 py-2">3</td>
-              <td class="px-4 py-2">Rp 15.000</td>
-            </tr>
-            <!-- Tambahkan data dinamis di sini -->
+            <?php while ($transaksi = mysqli_fetch_assoc($transaksiTerakhir)): ?>
+              <tr class="border-t">
+                <td class="px-4 py-2"><?= date('d/m/Y', strtotime($transaksi['tanggal'])) ?></td>
+                <td class="px-4 py-2"><?= $transaksi['idTransaksi'] ?></td>
+                <td class="px-4 py-2"><?= $transaksi['produk'] ?></td>
+                <td class="px-4 py-2"><?= $transaksi['jumlah'] ?></td>
+                <td class="px-4 py-2">Rp <?= number_format($transaksi['total'], 0, ',', '.') ?></td>
+              </tr>
+            <?php endwhile; ?>
           </tbody>
         </table>
       </div>
@@ -110,20 +245,20 @@
     <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- Grafik Penjualan -->
       <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-xl font-semibold text-primary mb-4">Grafik Penjualan</h2>
+        <h2 class="text-xl font-semibold text-primary mb-4">Grafik Penjualan 7 Hari Terakhir</h2>
         <canvas id="salesChart" height="200"></canvas>
       </div>
 
       <!-- Grafik Produk Terlaris -->
       <div class="bg-white p-6 rounded-lg shadow">
-        <h2 class="text-xl font-semibold text-primary mb-4">Produk Terlaris</h2>
+        <h2 class="text-xl font-semibold text-primary mb-4">5 Produk Terlaris</h2>
         <canvas id="topProductsChart" height="200"></canvas>
       </div>
     </section>
   </main>
 
   <script>
- // Toggle profile dropdown
+    // Toggle profile dropdown
     const profileBtn = document.getElementById('profile-button');
     const profileMenu = document.getElementById('profile-menu');
     profileBtn.addEventListener('click', () => {
@@ -153,14 +288,26 @@
     const salesChart = new Chart(document.getElementById('salesChart').getContext('2d'), {
       type: 'line',
       data: {
-        labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+        labels: <?= json_encode($labelsHarian) ?>,
         datasets: [{
-          label: 'Jumlah Penjualan',
-          data: [12, 19, 3, 5, 2, 3, 7],
+          label: 'Total Penjualan (Rp)',
+          data: <?= json_encode($dataHarian) ?>,
           borderColor: '#212A3D',
           backgroundColor: 'rgba(33, 42, 61, 0.1)',
           tension: 0.4
         }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return 'Rp ' + value.toLocaleString('id-ID');
+              }
+            }
+          }
+        }
       }
     });
 
@@ -168,12 +315,19 @@
     const topProductsChart = new Chart(document.getElementById('topProductsChart').getContext('2d'), {
       type: 'bar',
       data: {
-        labels: ['Es Teh', 'Nasi Goreng', 'Ayam Bakar', 'Mie Ayam', 'Kopi'],
+        labels: <?= json_encode($labelsProduk) ?>,
         datasets: [{
           label: 'Jumlah Terjual',
-          data: [30, 25, 20, 15, 10],
+          data: <?= json_encode($dataProduk) ?>,
           backgroundColor: '#212A3D'
         }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
       }
     });
   </script>

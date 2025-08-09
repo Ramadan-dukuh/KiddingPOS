@@ -1,5 +1,6 @@
 <?php
 require_once 'koneksi.php';
+$conn = koneksi();
 
 // Proses logout
 session_start();

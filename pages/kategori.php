@@ -1,3 +1,8 @@
+<?php
+require_once '../crud/crud-kategori.php';
+$kategoriList = getKategori();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,9 +16,6 @@
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     .bg-primary { background-color: #212A3D; }
@@ -83,12 +85,13 @@
     <!-- Tambah Kategori -->
     <section class="bg-white p-6 rounded-lg shadow">
       <h2 class="text-xl font-semibold text-primary mb-4">Tambah Kategori</h2>
-      <form action="#" method="POST" class="space-y-4">
+      <form action="../crud/crud-kategori.php" method="POST" class="space-y-4">
+        <input type="hidden" name="action" value="add">
         <div>
-          <label for="kategori" class="block mb-1 text-sm font-medium text-gray-700">Nama Kategori</label>
-          <input type="text" id="kategori" name="kategori" class="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Contoh: Minuman">
-        </div>        
-        <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-gray-800">Simpan</button>
+          <label for="namaKategori" class="block mb-1 text-sm font-medium text-gray-700">Nama Kategori</label>
+          <input type="text" id="namaKategori" name="namaKategori" class="w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Contoh: Minuman" required>
+        </div>
+        <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md hover:bg-blue-700">Simpan</button>
       </form>
     </section>
 
@@ -96,32 +99,65 @@
     <section class="bg-white p-6 rounded-lg shadow">
       <h2 class="text-xl font-semibold text-primary mb-4">Daftar Kategori</h2>
       <div class="overflow-x-auto">
-        <table class="min-w-full text-sm text-left">
+        <table class="min-w-full text-sm text-left mt-4">
           <thead class="bg-gray-100">
             <tr>
               <th class="px-4 py-2">#</th>
-              <th class="px-4 py-2">Nama Kategori</th>              
+              <th class="px-4 py-2">Nama Kategori</th>
               <th class="px-4 py-2">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <tr class="border-t">
-              <td class="px-4 py-2">1</td>
-              <td class="px-4 py-2">Minuman</td>              
-              <td class="px-4 py-2 space-x-2">
-                <button class="text-blue-600 hover:underline"><i class="fas fa-edit"></i></button>
-                <button class="text-red-600 hover:underline"><i class="fas fa-trash"></i></button>
-              </td>
-            </tr>
-            <!-- Tambahkan data dinamis di sini -->
+            <?php if (!empty($kategoriList)): ?>
+              <?php $no = 1; foreach ($kategoriList as $row): ?>
+              <tr class="border-t">
+                <td class="px-4 py-2"><?= $no++ ?></td>
+                <td class="px-4 py-2"><?= htmlspecialchars($row['namaKategori']) ?></td>
+                <td class="px-4 py-2 space-x-2">
+                  <button onclick="editKategori(<?= $row['idKategori'] ?>, '<?= htmlspecialchars($row['namaKategori']) ?>')" 
+                          class="text-blue-600 hover:text-blue-800">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <a href="../crud/crud-kategori.php?action=delete&id=<?= $row['idKategori'] ?>" 
+                     onclick="return confirm('Yakin ingin menghapus kategori ini?')" 
+                     class="text-red-600 hover:text-red-800">
+                    <i class="fas fa-trash"></i>
+                  </a>
+                </td>
+              </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr>
+                <td colspan="3" class="px-4 py-2 text-center">Tidak ada data kategori</td>
+              </tr>
+            <?php endif; ?>
           </tbody>
         </table>
       </div>
     </section>
   </main>
 
+  <!-- Modal Edit -->
+  <div id="modal-edit" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded-lg w-96">
+      <h2 class="text-lg font-semibold mb-4">Edit Kategori</h2>
+      <form action="../crud/crud-kategori.php" method="POST">
+        <input type="hidden" name="action" value="edit">
+        <input type="hidden" name="id" id="edit-id">
+        <div class="mb-4">
+          <label class="block mb-1 text-sm font-medium">Nama Kategori</label>
+          <input type="text" name="namaKategori" id="edit-kategori" class="w-full border border-gray-300 rounded-md px-3 py-2" required>
+        </div>
+        <div class="flex justify-end space-x-2">
+          <button type="button" onclick="closeEdit()" class="px-4 py-2 border rounded hover:bg-gray-100">Batal</button>
+          <button type="submit" class="bg-primary text-white px-4 py-2 rounded hover:bg-blue-700">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-     // Toggle profile dropdown
+    // Toggle profile dropdown
     const profileBtn = document.getElementById('profile-button');
     const profileMenu = document.getElementById('profile-menu');
     profileBtn.addEventListener('click', () => {
@@ -140,12 +176,23 @@
       closeIcon.classList.toggle('hidden');
     });
 
-    // Optional: close profile dropdown when clicking outside
+    // Close dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!profileBtn.contains(e.target) && !profileMenu.contains(e.target)) {
         profileMenu.classList.add('hidden');
       }
     });
+
+    // Edit Kategori Functions
+    function editKategori(id, kategori) {
+      document.getElementById('edit-id').value = id;
+      document.getElementById('edit-kategori').value = kategori;
+      document.getElementById('modal-edit').classList.remove('hidden');
+    }
+
+    function closeEdit() {
+      document.getElementById('modal-edit').classList.add('hidden');
+    }
   </script>
 </body>
 </html>

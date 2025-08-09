@@ -1,5 +1,6 @@
 <?php
 require_once 'koneksi.php';
+$conn = koneksi();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {  
   $email = trim($_POST['email']);

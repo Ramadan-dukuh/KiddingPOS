@@ -1,5 +1,6 @@
 <?php
 require_once 'koneksi.php';
+$conn = koneksi();
 
 //untuk login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

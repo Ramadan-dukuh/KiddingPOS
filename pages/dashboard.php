@@ -1,3 +1,51 @@
+<?php
+require_once '../crud/koneksi.php';
+session_start();
+
+// Fungsi untuk mendapatkan total penjualan hari ini
+function getTotalPenjualanHariIni() {
+    global $conn;
+    $query = "SELECT SUM(total) AS total FROM transaksi WHERE DATE(tanggal) = CURDATE()";
+    $result = mysqli_query($conn, $query);
+    $row = mysqli_fetch_assoc($result);
+    return $row['total'] ?? 0;
+}
+
+// Fungsi untuk mendapatkan jumlah produk
+function getJumlahProduk() {
+    global $conn;
+    $query = "SELECT COUNT(*) AS jumlah FROM barang";
+    $result = mysqli_query($conn, $query);
+    $row = mysqli_fetch_assoc($result);
+    return $row['jumlah'] ?? 0;
+}
+
+// Fungsi untuk mendapatkan jumlah kategori
+function getJumlahKategori() {
+    global $conn;
+    $query = "SELECT COUNT(*) AS jumlah FROM kategori";
+    $result = mysqli_query($conn, $query);
+    $row = mysqli_fetch_assoc($result);
+    return $row['jumlah'] ?? 0;
+}
+
+// Fungsi untuk mendapatkan transaksi terbaru
+function getTransaksiTerbaru($limit = 5) {
+    global $conn;
+    $query = "SELECT idTransaksi, tanggal, total 
+              FROM transaksi 
+              ORDER BY tanggal DESC 
+              LIMIT $limit";
+    return mysqli_query($conn, $query);
+}
+
+// Ambil data dari database
+$totalPenjualan = getTotalPenjualanHariIni();
+$jumlahProduk = getJumlahProduk();
+$jumlahKategori = getJumlahKategori();
+$transaksiTerbaru = getTransaksiTerbaru();
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -88,53 +136,52 @@
   </nav>
 
   <main class="px-4 py-6">
-    <!-- Contoh layout cards -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-  <div class="bg-white shadow rounded-lg p-4">
-    <h3 class="text-gray-700 text-sm font-semibold">Total Penjualan Hari Ini</h3>
-    <p class="text-2xl font-bold text-primary mt-2">Rp 1.250.000</p>
-  </div>
-  
-  <div class="bg-white shadow rounded-lg p-4">
-    <h3 class="text-gray-700 text-sm font-semibold">Jumlah Produk</h3>
-    <p class="text-2xl font-bold text-primary mt-2">152</p>
-  </div>
+    <!-- Statistik Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+      <div class="bg-white shadow rounded-lg p-4">
+        <h3 class="text-gray-700 text-sm font-semibold">Total Penjualan Hari Ini</h3>
+        <p class="text-2xl font-bold text-primary mt-2">Rp <?= number_format($totalPenjualan, 0, ',', '.') ?></p>
+      </div>
+      
+      <div class="bg-white shadow rounded-lg p-4">
+        <h3 class="text-gray-700 text-sm font-semibold">Jumlah Produk</h3>
+        <p class="text-2xl font-bold text-primary mt-2"><?= $jumlahProduk ?></p>
+      </div>
 
-  <div class="bg-white shadow rounded-lg p-4">
-    <h3 class="text-gray-700 text-sm font-semibold">Jumlah Produk</h3>
-    <p class="text-2xl font-bold text-primary mt-2">152</p>
-  </div>
-  <!-- Tambah card lainnya -->
-</div>
+      <div class="bg-white shadow rounded-lg p-4">
+        <h3 class="text-gray-700 text-sm font-semibold">Jumlah Kategori</h3>
+        <p class="text-2xl font-bold text-primary mt-2"><?= $jumlahKategori ?></p>
+      </div>
+    </div>
 
-<div class="mt-6 bg-white rounded-lg shadow p-4">
-  <h2 class="text-lg font-semibold mb-4">Transaksi Terbaru</h2>
-  <table class="w-full text-sm text-left">
-    <thead class="text-gray-500 border-b">
-      <tr>
-        <th class="py-2">Tanggal</th>
-        <th class="py-2">ID Transaksi</th>
-        <th class="py-2">Pelanggan</th>
-        <th class="py-2">Total</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr class="border-b hover:bg-gray-50">
-        <td class="py-2">2025-08-07</td>
-        <td class="py-2">#TRX00123</td>
-        <td class="py-2">Budi</td>
-        <td class="py-2">Rp 150.000</td>
-      </tr>
-      <!-- Tambah baris lainnya -->
-    </tbody>
-  </table>
-</div>
+    <!-- Tabel Transaksi Terbaru -->
+    <div class="mt-6 bg-white rounded-lg shadow p-4">
+      <h2 class="text-lg font-semibold mb-4">Transaksi Terbaru</h2>
+      <table class="w-full text-sm text-left">
+        <thead class="text-gray-500 border-b">
+          <tr>
+            <th class="py-2">Tanggal</th>
+            <th class="py-2">ID Transaksi</th>
+            <th class="py-2">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php while ($transaksi = mysqli_fetch_assoc($transaksiTerbaru)): ?>
+            <tr class="border-b hover:bg-gray-50">
+              <td class="py-2"><?= date('d/m/Y', strtotime($transaksi['tanggal'])) ?></td>
+              <td class="py-2"><?= $transaksi['idTransaksi'] ?></td>
+              <td class="py-2">Rp <?= number_format($transaksi['total'], 0, ',', '.') ?></td>
+            </tr>
+          <?php endwhile; ?>
+        </tbody>
+      </table>
+    </div>
 
-<div class="mt-6 flex space-x-4">
-  <a href="#tambah-produk" class="bg-primary text-white px-4 py-2 rounded shadow hover:bg-gray-900">+ Tambah Produk</a>
-  <a href="#tambah-transaksi" class="bg-primary text-white px-4 py-2 rounded shadow hover:bg-gray-900">+ Transaksi Baru</a>
-</div>
-
+    <!-- Tombol Aksi Cepat -->
+    <div class="mt-6 flex space-x-4">
+      <a href="stok.php?tambah=1" class="bg-primary text-white px-4 py-2 rounded shadow hover:bg-gray-900">+ Tambah Produk</a>
+      <a href="penjualan.php" class="bg-primary text-white px-4 py-2 rounded shadow hover:bg-gray-900">+ Transaksi Baru</a>
+    </div>
   </main>
 
   <script>

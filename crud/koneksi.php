@@ -1,13 +1,19 @@
 <?php
-// koneksi ke database
-$host = "localhost";
-$username = "root";
-$password = "";
-$database = "bmcwarung";
-// membuat koneksi
-$conn = mysqli_connect($host, $username, $password, $database);
-// cek koneksi
-if (!$conn) {
-    die("Connection failed: " . mysqli_connect_error());
-}    
+    function koneksi() {
+        $db_host = 'localhost';
+        $db_user = 'root';
+        $db_pass = '';
+        $db_name = 'bmcwarung';
+
+        $conn = mysqli_connect($db_host, $db_user, $db_pass, $db_name);
+
+        if (!$conn) {
+            error_log("Koneksi database gagal: " . mysqli_connect_error(), 0);
+
+            die("Maaf, terjadi kesalahan pada sistem. Silakan coba lagi nanti.");
+        }
+        
+        return $conn;
+    }
+        $conn = koneksi();
 ?>
